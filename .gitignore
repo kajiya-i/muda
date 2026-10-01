@@ -1,0 +1,29 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Go
+/bin/
+*.exe
+*.test
+*.out
+coverage.*
+
+# Bun / TypeScript
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Claude Code (personal settings)
+.claude/settings.local.json
+CLAUDE.local.md
