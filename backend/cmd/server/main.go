@@ -28,8 +28,8 @@ func run() error {
 	})
 
 	srv := &http.Server{
-		Addr: ":8080",
-		Handler: mux,
+		Addr:              ":8080",
+		Handler:           mux,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
@@ -41,7 +41,7 @@ func run() error {
 		}
 		close(errCh)
 	}()
-	
+
 	select {
 	case err := <-errCh:
 		return err
