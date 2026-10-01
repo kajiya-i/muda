@@ -16,6 +16,32 @@ Effect is used where it adds guarantees that plain TypeScript cannot: typed fail
 
 These rules are guidelines, not an instruction to make every piece of code maximally functional. Prefer the form that is clearest for a reader who knows TypeScript and the core of Effect.
 
+### Effect Version
+
+These rules target **Effect 4.x**. All code examples use the Effect 4 API.
+
+* [Effect 4.0 release announcement](https://effect.website/blog/releases/effect/40)
+* [Migration guide from Effect 3 to Effect 4](https://github.com/Effect-TS/effect/blob/main/MIGRATION.md)
+* [Effect 4 documentation](https://effect.website/docs/v4/getting-started/)
+
+Most existing articles, answers, and examples on the web still use the Effect 3 API. Do not copy Effect 3 code as-is. The differences that come up most often in this codebase are:
+
+| Effect 3 | Effect 4 |
+|---|---|
+| `Context.Tag("Key")<Self, Shape>()` | `Context.Service<Self, Shape>()("Key")` |
+| `Effect.async` | `Effect.callback` |
+| `Effect.catchAll` | `Effect.catch` |
+| `Schema.decodeUnknown` | `Schema.decodeUnknownEffect` |
+| `ParseError` (tag `"ParseError"`) | `Schema.SchemaError` (tag `"SchemaError"`) |
+| `Schema.pattern(regex)` | `.check(Schema.isPattern(regex))` |
+| `Option.fromNullable` | `Option.fromUndefinedOr` / `Option.fromNullishOr` |
+| `Data.struct` for structural equality | Not needed; `Equal.equals` compares plain objects and arrays structurally |
+| `TestClock` from `effect` | `TestClock` from `effect/testing` |
+| `@effect/platform` (`HttpClient`, `FetchHttpClient`) | `effect/http` |
+| `STM`, `TRef` | `Effect.tx`, `TxRef` and other `Tx*` types |
+
+When a review comment or a reference suggests an Effect 3 API, check it against the Effect 4 documentation before applying it.
+
 ---
 
 ## 1. Prefer Pure Functions
@@ -67,7 +93,7 @@ const checkSession = (session: Session) =>
   })
 ```
 
-Use `Clock` for time and `Random` for randomness inside effects, and `TestClock` in tests. Do not call `Date.now()` or `Math.random()` inside an `Effect.gen` body.
+Use `Clock` for time and `Random` for randomness inside effects, and `TestClock` (from `effect/testing`) in tests. Do not call `Date.now()` or `Math.random()` inside an `Effect.gen` body.
 
 The same applies to closures in React. A handler that reads a value captured from an earlier render can act on stale data:
 
@@ -134,7 +160,7 @@ useEffect(() => {
 }, [filters])
 ```
 
-When the question is "are these two values meaningfully equal?" rather than "should this hook re-run?", compare structurally. Values created with `Data.struct`, `Data.TaggedClass`, `Data.TaggedEnum`, or `Schema.Class` implement Effect's `Equal`, so `Equal.equals(a, b)` compares them by content. Note that React itself still compares by reference; `Equal` does not change hook behavior.
+When the question is "are these two values meaningfully equal?" rather than "should this hook re-run?", compare structurally with `Equal.equals(a, b)`. In Effect 4 it compares primitives, arrays, plain objects, maps, sets, and dates by content, and delegates to values that implement the `Equal` interface (such as `Data.TaggedClass`, `Data.TaggedEnum` values, and `Schema.Class` instances). Note that React itself still compares by reference; `Equal` does not change hook behavior.
 
 ---
 
@@ -229,7 +255,7 @@ const loadActiveUsers = Effect.gen(function* () {
 // Effect<ReadonlyArray<User>, NetworkError | DecodeError, UserApi>
 ```
 
-Do not perform side effects outside of an `Effect` (no bare `fetch`, `localStorage`, or `console` calls in application code), and do not hide them inside functions that look pure. Wrap Promise-based or callback-based APIs once, at the integration point, with `Effect.tryPromise` or `Effect.async`, mapping their failures into typed errors.
+Do not perform side effects outside of an `Effect` (no bare `fetch`, `localStorage`, or `console` calls in application code), and do not hide them inside functions that look pure. Wrap Promise-based or callback-based APIs once, at the integration point, with `Effect.tryPromise` or `Effect.callback`, mapping their failures into typed errors.
 
 ```ts
 const fetchJson = (url: string) =>
@@ -251,20 +277,20 @@ At every boundary where data enters the application (API responses, form input, 
 const UserId = Schema.String.pipe(Schema.brand("UserId"))
 type UserId = typeof UserId.Type
 
-const Email = Schema.String.pipe(Schema.pattern(/^[^@\s]+@[^@\s]+$/), Schema.brand("Email"))
+const Email = Schema.String.check(Schema.isPattern(/^[^@\s]+@[^@\s]+$/)).pipe(Schema.brand("Email"))
 
 class User extends Schema.Class<User>("User")({
   id: UserId,
-  name: Schema.NonEmptyTrimmedString,
+  name: Schema.NonEmptyString,
   email: Email,
   active: Schema.Boolean,
 }) {}
 
-const decodeUsers = Schema.decodeUnknown(Schema.Array(User))
+const decodeUsers = Schema.decodeUnknownEffect(Schema.Array(User))
 
 const listUsers = fetchJson("/api/users").pipe(
   Effect.flatMap(decodeUsers),
-  Effect.catchTag("ParseError", (error) => Effect.fail(new DecodeError({ error }))),
+  Effect.catchTag("SchemaError", (error) => Effect.fail(new DecodeError({ error }))),
 )
 ```
 
@@ -310,6 +336,7 @@ Rules:
 * Do not `throw` inside effectful code. A thrown exception becomes a **defect**, which is invisible in the type.
 * Distinguish expected errors (in `E`, handled by callers) from defects (bugs and unrecoverable conditions). Use `Effect.orDie` or `Effect.die` only for conditions the caller genuinely cannot handle; do not catch defects in business logic.
 * Keep error types specific. Do not collapse everything into `Error` or `unknown` in the `E` channel.
+* Prefer handling errors by tag (`Effect.catchTag`, `Effect.catchTags`) over catching everything (`Effect.catch`), so that a newly added error type is not silently swallowed.
 * Map backend error codes from the API contract to tagged errors at the API client boundary, once (see Section 18).
 
 In pure code that does not otherwise use Effect, a plain discriminated union return type is acceptable for multiple outcomes; do not pull in Effect just to return an error.
@@ -321,18 +348,20 @@ In pure code that does not otherwise use Effect, a plain discriminated union ret
 Express what an effect needs as a service in `R`, never as a module-level singleton imported directly.
 
 ```ts
-class UserApi extends Context.Tag("UserApi")<
+class UserApi extends Context.Service<
   UserApi,
   {
     readonly list: () => Effect.Effect<ReadonlyArray<User>, NetworkError | DecodeError>
     readonly findById: (id: UserId) => Effect.Effect<User, UserNotFound | NetworkError | DecodeError>
   }
->() {}
+>()("UserApi") {}
 ```
 
 Provide implementations as `Layer`s, and compose all layers in **one** composition root:
 
 ```ts
+import { FetchHttpClient, HttpClient } from "effect/http"
+
 const UserApiLive = Layer.effect(
   UserApi,
   Effect.gen(function* () {
@@ -446,7 +475,7 @@ For representing absence:
 
 * In plain TypeScript code and at React/component boundaries, use `T | undefined`.
 * Inside Effect pipelines where absence is composed with other operations, `Option<T>` is acceptable.
-* Convert between them at the edge of the module (`Option.fromNullable`, `Option.getOrUndefined`). Do not expose both styles for the same concept, and do not use `null` and `undefined` interchangeably.
+* Convert between them at the edge of the module (`Option.fromUndefinedOr`, `Option.getOrUndefined`). Do not expose both styles for the same concept, and do not use `null` and `undefined` interchangeably.
 
 Enable `noUncheckedIndexedAccess` so array and record lookups are typed as possibly absent.
 
@@ -494,9 +523,9 @@ The core logic contains no direct side effects: it either computes purely or des
 Effect is a tool, not a goal. Do not:
 
 * Wrap pure computation in `Effect`, or make a function return `Effect` when it cannot fail and has no dependencies.
-* Convert simple code to `Option`, `Either`, or Effect's collection modules where plain TypeScript is clearer.
+* Convert simple code to `Option`, `Result`, or Effect's collection modules where plain TypeScript is clearer.
 * Introduce custom monadic abstractions on top of Effect.
-* Use advanced features (fibers, `Stream`, `STM`, `Scope` manipulation, custom `Schedule`s) without a concrete requirement.
+* Use advanced features (fibers, `Stream`, transactional `Tx*` types, `Scope` manipulation, custom `Schedule`s) without a concrete requirement.
 * Build deeply nested `pipe` chains or point-free code that a teammate cannot read without tracing every combinator.
 * Push Effect types into React component props; components receive plain values and callbacks.
 
@@ -510,8 +539,15 @@ Effect is the only functional-programming library in the frontend.
 
 * Do not add `fp-ts`, `io-ts`, `purify-ts`, `neverthrow`, `Remeda`, `Ramda`, or similar libraries alongside it.
 * Use `Schema` for validation instead of a second validation library, unless a dependency requires one at its own boundary (convert to `Schema`-decoded types immediately).
-* Use Effect's ecosystem packages (`@effect/platform`, etc.) for HTTP and platform integration where they fit, rather than mixing several independent abstractions.
-* Pin Effect package versions together and upgrade them as a set.
+* Use the modules built into `effect` (e.g. `effect/http`) for HTTP and platform integration where they fit, rather than mixing several independent abstractions.
+* Keep `effect` and every `@effect/*` package on the same version, and upgrade them together. Effect 4 releases all of them in lockstep under a single version number.
+
+### Unstable Modules
+
+Some Effect 4 modules (e.g. `effect/http`) are marked `@stability unstable` and may introduce breaking changes in minor releases. They may be used, but:
+
+* Use them only inside service implementations (`Layer`s) at the integration points, never in domain logic or in service interfaces. A breaking change then stays contained in one place.
+* Pin the Effect version exactly, and read the release notes before upgrading.
 
 Any additional library must solve an identified problem that Effect and standard TypeScript cannot solve cleanly, and must be readable and maintainable by the team.
 
@@ -520,15 +556,16 @@ Any additional library must solve an identified problem that Effect and standard
 ## Summary
 
 * Pure computation is plain TypeScript; I/O, expected failure, and dependencies are `Effect`.
+* These rules target Effect 4; do not copy Effect 3 code without checking it against the Effect 4 API.
 * No hidden inputs: pass values explicitly in pure code, use `Clock` and `Random` in effects.
 * Do not mutate inputs or state; use `readonly`.
-* Compare by value with `Equal` when meaning matters; remember React compares by reference.
+* Compare by value with `Equal.equals` when meaning matters; remember React compares by reference.
 * Use `_tag`-discriminated unions for state, and make unhandled cases a compile error with `Match.exhaustive`.
 * Keep reducers pure.
 * Decode all external data once with `Schema`; brand concepts with real invariants.
 * Model expected errors as tagged errors in `E`; never `throw` inside effects; keep defects separate.
-* Declare dependencies as services in `R`, provide them with `Layer`s at one composition root.
+* Declare dependencies as services in `R` with `Context.Service`, provide them with `Layer`s at one composition root.
 * Run effects only at the boundary through a single `ManagedRuntime`, never during render.
 * Compose with Effect's `pipe`; avoid over-abstraction.
 * Treat the backend API contract as the source of truth and map its error codes to tagged errors once.
-* Effect is the only FP library.
+* Effect is the only FP library; keep unstable Effect modules confined to service implementations.
