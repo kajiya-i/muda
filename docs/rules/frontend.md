@@ -296,7 +296,7 @@ const listUsers = fetchJson("/api/users").pipe(
 
 Use branded schemas (`Schema.brand`) for domain concepts with real invariants (IDs, email addresses, amounts) so a raw `string` cannot be passed where a validated value is expected. Do not brand every field merely for consistency.
 
-Keep the schema as the single definition of a shape: derive the TypeScript type from it (`typeof User.Type`, `Schema.Schema.Type<typeof X>`) instead of declaring the type separately.
+Keep the schema as the single definition of a shape: derive the TypeScript type from it (`typeof User.Type`, `typeof X.Type`) instead of declaring the type separately.
 
 ---
 
