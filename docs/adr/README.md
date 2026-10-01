@@ -40,3 +40,4 @@
 
 | No. | Title | Status | Date |
 |---|---|---|---|
+| [0001](0001-record-architecture-decisions.md) | 設計判断を ADR として記録する | Accepted | 2026-10-01 |
