@@ -4,7 +4,7 @@
 
 The Go backend adopts the **ideas** of functional programming — pure business logic, explicit inputs, side effects at the boundary, immutable domain values — but **not** a functional-programming library or a functional coding style that fights Go's own idioms.
 
-This is a deliberate asymmetry with the frontend. The frontend uses Effect, because TypeScript's type system can carry typed errors, dependencies, and discriminated unions without friction. Go lacks sum types, higher-kinded types, generic methods, and `readonly`, and its ecosystem is built around `(value, error)` and explicit loops. Each principle below is kept only where it survives translation into idiomatic Go; principles that would fight Go's grain are explicitly marked **not adopted**.
+This is a deliberate asymmetry with the frontend. The frontend uses Effect, because TypeScript's type system can carry typed errors, dependencies, and discriminated unions without friction. Go 1.27 added generic methods, but Go still lacks sum types, higher-kinded types, and `readonly`, and its ecosystem is built around `(value, error)` and explicit loops. Each principle below is kept only where it survives translation into idiomatic Go; principles that would fight Go's grain are explicitly marked **not adopted**.
 
 Do not introduce an FP library (e.g. `fp-go`, `samber/lo`, `samber/mo`, or a custom `Option`/`Result`/`Either` package) to implement these principles. Use the standard library and the language's own `(value, error)` idiom.
 
