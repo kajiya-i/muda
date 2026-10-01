@@ -41,3 +41,4 @@
 | No. | Title | Status | Date |
 |---|---|---|---|
 | [0001](0001-record-architecture-decisions.md) | 設計判断を ADR として記録する | Accepted | 2026-10-01 |
+| [0002](0002-adopt-effect-4.md) | フロントエンドで Effect 4 を採用する | Accepted | 2026-10-02 |
