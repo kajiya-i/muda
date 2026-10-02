@@ -1,1 +1,0 @@
-export const App = () => <h1>Muda</h1>
