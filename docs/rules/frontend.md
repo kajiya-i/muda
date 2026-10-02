@@ -249,7 +249,7 @@ Write sequential effectful code with `Effect.gen`, and keep the decisions inside
 ```ts
 const loadActiveUsers = Effect.gen(function* () {
   const api = yield* UserApi
-  const users = yield* api.list()
+  const users = yield* api.list
   return getActiveUsers(users) // pure
 })
 // Effect<ReadonlyArray<User>, NetworkError | DecodeError, UserApi>
@@ -351,7 +351,7 @@ Express what an effect needs as a service in `R`, never as a module-level single
 class UserApi extends Context.Service<
   UserApi,
   {
-    readonly list: () => Effect.Effect<ReadonlyArray<User>, NetworkError | DecodeError>
+    readonly list: Effect.Effect<ReadonlyArray<User>, NetworkError | DecodeError>
     readonly findById: (id: UserId) => Effect.Effect<User, UserNotFound | NetworkError | DecodeError>
   }
 >()("UserApi") {}
@@ -367,7 +367,7 @@ const UserApiLive = Layer.effect(
   Effect.gen(function* () {
     const http = yield* HttpClient.HttpClient
     return {
-      list: () => /* ... */,
+      list: /* ... */,
       findById: (id) => /* ... */,
     }
   }),
@@ -380,6 +380,7 @@ export const AppLayer = Layer.mergeAll(UserApiLive /* , ... */).pipe(
 
 Rules:
 
+* Define a service member that takes no arguments as an `Effect` value, not as a zero-argument function returning an `Effect`. An `Effect` is already a description that runs only when executed, so wrapping it in a function adds nothing.
 * A service interface's methods must not themselves leak requirements (`R` of each method should be `never`); dependencies are resolved when the layer is built.
 * Do not call `Effect.provide` deep inside business logic. Provide layers at the composition root or in tests.
 * In tests, provide a test layer (`Layer.succeed(UserApi, { ... })`) instead of mocking modules.
@@ -548,6 +549,7 @@ Some Effect 4 modules (e.g. `effect/http`) are marked `@stability unstable` and 
 
 * Use them only inside service implementations (`Layer`s) at the integration points, never in domain logic or in service interfaces. A breaking change then stays contained in one place.
 * Pin the Effect version exactly, and read the release notes before upgrading.
+* Enforce this with the Effect language service rather than review alone: set the `unstableApiUsage` diagnostic to `error` for the whole project, and turn it off in `tsconfig.json` (`overrides`) only for the files that hold service implementations and the composition root. When adding a new place for service implementations, update the overrides in the same change.
 
 Any additional library must solve an identified problem that Effect and standard TypeScript cannot solve cleanly, and must be readable and maintainable by the team.
 
