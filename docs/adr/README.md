@@ -45,3 +45,4 @@
 | [0003](0003-double-entry-ledger.md) | お金の動きを複式の台帳として記録する | Superseded | 2026-10-02 |
 | [0004](0004-money-representation.md) | 金額を最小単位の整数と通貨コードで表す | Accepted | 2026-10-02 |
 | [0005](0005-multi-currency-ledger.md) | 多通貨に対応した複式の台帳でお金の動きを記録する | Accepted | 2026-10-02 |
+| [0006](0006-persistence-stack.md) | PostgreSQL、pgx、sqlc、goose で永続化する | Accepted | 2026-10-03 |
