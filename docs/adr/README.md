@@ -42,4 +42,6 @@
 |---|---|---|---|
 | [0001](0001-record-architecture-decisions.md) | 設計判断を ADR として記録する | Accepted | 2026-10-01 |
 | [0002](0002-adopt-effect-4.md) | フロントエンドで Effect 4 を採用する | Accepted | 2026-10-02 |
-| [0003](0003-double-entry-ledger.md) | お金の動きを複式の台帳として記録する | Accepted | 2026-10-02 |
+| [0003](0003-double-entry-ledger.md) | お金の動きを複式の台帳として記録する | Superseded | 2026-10-02 |
+| [0004](0004-money-representation.md) | 金額を最小単位の整数と通貨コードで表す | Accepted | 2026-10-02 |
+| [0005](0005-multi-currency-ledger.md) | 多通貨に対応した複式の台帳でお金の動きを記録する | Accepted | 2026-10-02 |
