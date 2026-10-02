@@ -14,5 +14,6 @@
 
 ## ドキュメント
 
+- ドメインの仕様: [docs/domain](docs/domain)
 - 設計判断の記録: [docs/adr](docs/adr)
 - 開発ルール: [docs/rules](docs/rules)
