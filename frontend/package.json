@@ -10,7 +10,7 @@
     "typecheck": "tsc",
     "check": "biome check .",
     "check:fix": "biome check --write .",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run",
     "test:watch": "vitest",
     "prepare": "effect-tsgo patch --typescript --no-oxlint"
   },
@@ -27,6 +27,7 @@
     "vitest": "^5.0.3"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.104.1",
     "@tanstack/react-router": "^1.170.41",
     "effect": "4.0.0",
     "react": "^19.3.0",
