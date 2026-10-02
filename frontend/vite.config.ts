@@ -4,4 +4,9 @@ import { defineConfig } from "vite"
 
 export default defineConfig({
   plugins: [tanstackRouter({ target: "react", autoCodeSplitting: true }), react()],
+  server: {
+    proxy: {
+      "/healthz": "http://localhost:8080",
+    },
+  },
 })

@@ -19,7 +19,32 @@
     "skipLibCheck": true,
     "noEmit": true,
 
-    "plugins": [{ "name": "@effect/language-service" }]
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "diagnosticSeverity": {
+          "unstableApiUsage": "error"
+        },
+        "overrides": [
+          {
+            "include": ["src/**/*.ts", "src/**/*.tsx"],
+            "options": {
+              "diagnosticSeverity": {
+                "floatingEffect": "error"
+              }
+            }
+          },
+          {
+            "include": ["src/api/**/*.ts", "src/runtime.ts"],
+            "options": {
+              "diagnosticSeverity": {
+                "unstableApiUsage": "off"
+              }
+            }
+          }
+        ]
+      }
+    ]
   },
   "include": ["src", "vite.config.ts"]
 }
