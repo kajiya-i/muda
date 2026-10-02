@@ -549,6 +549,7 @@ Some Effect 4 modules (e.g. `effect/http`) are marked `@stability unstable` and 
 
 * Use them only inside service implementations (`Layer`s) at the integration points, never in domain logic or in service interfaces. A breaking change then stays contained in one place.
 * Pin the Effect version exactly, and read the release notes before upgrading.
+* Enforce this with the Effect language service rather than review alone: set the `unstableApiUsage` diagnostic to `error` for the whole project, and turn it off in `tsconfig.json` (`overrides`) only for the files that hold service implementations and the composition root. When adding a new place for service implementations, update the overrides in the same change.
 
 Any additional library must solve an identified problem that Effect and standard TypeScript cannot solve cleanly, and must be readable and maintainable by the team.
 
