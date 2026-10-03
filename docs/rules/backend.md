@@ -316,6 +316,23 @@ The frontend and backend are written in different languages and cannot share typ
 
 ---
 
+## 13. Names, Comments, and Messages
+
+* Name types, functions, and variables in English, following the code names in the ubiquitous language glossary (`docs/domain/README.md`). For example, a consultation is `Consultation`, not `PurchaseRequest`.
+* Write comments, including doc comments, in Japanese. Start a doc comment with the name of the identifier it documents, following the Go convention, so that `go doc` and linters can read it.
+
+```go
+// Money は、符号付きの金額。台帳の計算や残高に使う。
+type Money struct {
+	// ...
+}
+```
+
+* Write error messages (`errors.New`, `fmt.Errorf`) in English, following the Go convention: start with a lowercase letter and do not end with punctuation. Error messages are for developers; they are wrapped with `%w` and read in logs.
+* Never show an error message to family members. Text shown to family members is built by the frontend from the error code in the API contract (Section 12), using the household words in the ubiquitous language.
+
+---
+
 ## Summary
 
 * Put pure business rules on domain types, not in usecases or handlers.
@@ -329,3 +346,4 @@ The frontend and backend are written in different languages and cannot share typ
 * Reserve sealed interfaces for genuinely exclusive, high-stakes domain states.
 * Do not introduce an FP library.
 * Keep a single source of truth for the API contract and a stable, machine-readable error format.
+* Name code in English after the glossary, write comments in Japanese, and write error messages in English for developers only.

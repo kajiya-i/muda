@@ -555,6 +555,15 @@ Any additional library must solve an identified problem that Effect and standard
 
 ---
 
+## 22. Names, Comments, and Messages
+
+* Name types, functions, variables, and `_tag` values in English, following the code names in the ubiquitous language glossary (`docs/domain/README.md`).
+* Write comments, including JSDoc, in Japanese.
+* Write messages carried by errors (for example a `message` field, or the text passed to `Effect.die`) in English. They are for developers, not for family members.
+* Never show an error message to family members. Build the text shown to family members from the error's `_tag`, using the household words in the ubiquitous language (for example, 「相談」「いいね」「今回は見送り」). Do not use business words such as 申請, 承認, or 却下 in the UI.
+
+---
+
 ## Summary
 
 * Pure computation is plain TypeScript; I/O, expected failure, and dependencies are `Effect`.
@@ -571,3 +580,4 @@ Any additional library must solve an identified problem that Effect and standard
 * Compose with Effect's `pipe`; avoid over-abstraction.
 * Treat the backend API contract as the source of truth and map its error codes to tagged errors once.
 * Effect is the only FP library; keep unstable Effect modules confined to service implementations.
+* Name code in English after the glossary, write comments in Japanese, keep error messages in English for developers, and build UI text from error tags using the household words.
