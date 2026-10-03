@@ -22,6 +22,7 @@ type fixture struct {
 	deadlines       consultation.Deadlines
 	submitted       consultation.Submitted
 	first           consultation.FirstLike
+	selfLiked       consultation.SelfLiked
 }
 
 func newFixture(t *testing.T) fixture {
@@ -61,13 +62,25 @@ func newFixture(t *testing.T) fixture {
 		t.Fatal("requirement is not LikesFromKeepers")
 	}
 
+	// おさいふ係が 1 人だけのおうちで、その人が出した相談のじぶんでいいね。
+	selfRoute, err := like.DecideRoute(household.New(mom), mom)
+	if err != nil {
+		t.Fatal(err)
+	}
+	selfRequirement, ok := like.ConsultationRequirement(selfRoute, like.NewReasons(false, true)).(like.LikeFromSelf)
+	if !ok {
+		t.Fatal("requirement is not LikeFromSelf")
+	}
+
 	tokyo := location(t, "Asia/Tokyo")
 	at := time.Date(2026, 10, 15, 12, 0, 0, 0, tokyo)
+	deadlines := consultation.NewDeadlines(at, tokyo)
 	return fixture{
 		mom: mom, dad: dad, child: child, tokyo: tokyo, at: at,
-		deadlines: consultation.NewDeadlines(at, tokyo),
+		deadlines: deadlines,
 		submitted: consultation.NewSubmitted(at, child, "スニーカー", amount, purpose.BuiltinClothing, "", route, true),
 		first:     consultation.NewFirstLike(requirement, money.New(50000, money.JPY)),
+		selfLiked: consultation.NewSelfLiked(at, mom, deadlines, selfRequirement, money.New(-8000, money.JPY)),
 	}
 }
 
@@ -159,7 +172,7 @@ func TestEvolveAdvanceAndRepayment(t *testing.T) {
 		t.Fatal(err)
 	}
 	c := evolveAll(t, consultation.Start(f.id(t), f.submitted),
-		consultation.NewSelfLiked(f.at, f.mom, f.deadlines),
+		f.selfLiked,
 		consultation.NewPurchaseReported(f.at, f.child, f.submitted.Amount(), consultation.PaidByAdvance),
 		consultation.NewAdvanceRepaid(f.at, f.mom, repayment),
 	)
@@ -272,5 +285,15 @@ func TestIsExpired(t *testing.T) {
 	}
 	if !consultation.IsExpired(liked, afterReportDeadline) {
 		t.Error("liked is not expired at the report deadline")
+	}
+}
+
+func TestSelfLikedKeepsReasonsAndRemainingBudget(t *testing.T) {
+	f := newFixture(t)
+	if !f.selfLiked.Requirement().Reasons().OverRemainingBudget() {
+		t.Error("OverRemainingBudget = false, want true")
+	}
+	if got := f.selfLiked.RemainingBudget(); got != money.New(-8000, money.JPY) {
+		t.Errorf("RemainingBudget = %v, want -8000 JPY", got)
 	}
 }

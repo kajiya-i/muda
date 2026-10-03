@@ -44,8 +44,13 @@ func NewLiked(at time.Time, by household.MemberID, deadlines Deadlines) Liked {
 }
 
 // NewSelfLiked は、じぶんでいいねしたイベントを返す。
-func NewSelfLiked(at time.Time, by household.MemberID, deadlines Deadlines) SelfLiked {
-	return SelfLiked{meta: meta{at: at, by: by}, deadlines: deadlines}
+func NewSelfLiked(at time.Time, by household.MemberID, deadlines Deadlines,
+	requirement like.LikeFromSelf, remainingBudget money.Money,
+) SelfLiked {
+	return SelfLiked{
+		meta: meta{at: at, by: by}, deadlines: deadlines,
+		requirement: requirement, remainingBudget: remainingBudget,
+	}
 }
 
 // NewPassed は、見送ったイベントを返す。

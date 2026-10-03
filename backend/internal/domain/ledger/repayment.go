@@ -14,7 +14,7 @@ type RepaymentID struct {
 	value string
 }
 
-// NewPaymentID は、おかえしの ID を返す。空文字列なら ErrEmptyRepaymentID を返す。
+// NewRepaymentID は、おかえしの ID を返す。空文字列なら ErrEmptyRepaymentID を返す。
 func NewRepaymentID(value string) (RepaymentID, error) {
 	if value == "" {
 		return RepaymentID{}, fmt.Errorf("new repayment id: %w", ErrEmptyRepaymentID)
