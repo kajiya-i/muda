@@ -46,3 +46,4 @@
 | [0004](0004-money-representation.md) | 金額を最小単位の整数と通貨コードで表す | Accepted | 2026-10-02 |
 | [0005](0005-multi-currency-ledger.md) | 多通貨に対応した複式の台帳でお金の動きを記録する | Accepted | 2026-10-02 |
 | [0006](0006-persistence-stack.md) | PostgreSQL、pgx、sqlc、goose で永続化する | Accepted | 2026-10-03 |
+| [0007](0007-persistence-format.md) | 台帳を移動の行で、相談とおねがいをようすとイベントで保存する | Accepted | 2026-10-03 |
