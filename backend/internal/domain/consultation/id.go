@@ -9,7 +9,7 @@ import (
 // ErrEmptyID は、空の相談 ID が渡されたときのエラー。
 var ErrEmptyID = errors.New("consultation id is empty")
 
-// ID は、相談を一意に戻す ID。
+// ID は、相談を一意に表す ID。
 type ID struct {
 	value string
 }
