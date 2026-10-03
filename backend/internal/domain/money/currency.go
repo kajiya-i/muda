@@ -9,7 +9,7 @@ var ErrUnsupportedCurrency = errors.New("unsupported currency")
 
 // Currency は、アプリケーションが扱える ISO 4217 の通貨。
 type Currency struct {
-	code string
+	code       string
 	minorUnits int
 }
 
@@ -34,7 +34,7 @@ func ParseCurrency(code string) (Currency, error) {
 func (c Currency) Code() string { return c.code }
 
 // MinorUnits は、小数点以下の桁数を返す。例: JPY は 0、USD は 2。
-func (c Currency) MinorUnits() int { return c.minorUnits}
+func (c Currency) MinorUnits() int { return c.minorUnits }
 
 // String は、fmt.Stringer インターフェースを実装する。ISO 4217 の通貨コードを返す。
 func (c Currency) String() string { return c.code }

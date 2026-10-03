@@ -20,7 +20,7 @@ var (
 
 // Money は、符号付きの金額。台帳の計算や残高に使う。
 type Money struct {
-	minor int64
+	minor    int64
 	currency Currency
 }
 
@@ -57,8 +57,8 @@ func (m Money) Add(other Money) (Money, error) {
 	}
 	if (other.minor > 0 && m.minor > math.MaxInt64-other.minor) ||
 		(other.minor < 0 && m.minor < math.MinInt64-other.minor) {
-			return Money{}, fmt.Errorf("add %d and %d: %w", m.minor, other.minor, ErrOverflow)
-		}
+		return Money{}, fmt.Errorf("add %d and %d: %w", m.minor, other.minor, ErrOverflow)
+	}
 	return Money{minor: m.minor + other.minor, currency: m.currency}, nil
 }
 
