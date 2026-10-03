@@ -5,11 +5,33 @@ linters:
   enable:
     - errorlint
     - exhaustive
+    - forbidigo
     - gochecksumtype
     - gosec
   settings:
+    depguard:
+      rules:
+        domain: 
+          files:
+            - "**/internal/domain/**"
+          allow:
+            - $gostd
+            - github.com/kajiya-i/muda/backend/internal/domain
+          deny:
+            - pkg: database/sql
+              desc: ドメイン層はデータベースにアクセスしない
+            - pkg: net/http
+              desc: ドメイン層は HTTP に依存しない
+            - pkg: os
+              desc: ドメイン層は環境変数などを読まない
     exhaustive:
       default-signifies-exhaustive: false
+    forbidigo:
+      forbid:
+        - pattern: ^time\.Now$
+          msg: 現在時刻は引数で受け取る（docs/rules/backend.md §2）
+        - pattern: ^os\.(Getenv|LookupEnv)$
+          msg: 設定は起動時に 1 か所で読み込む（docs/rules/backend.md §2）
 
 formatters:
   enable:
