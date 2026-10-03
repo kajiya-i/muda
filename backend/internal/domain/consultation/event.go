@@ -65,9 +65,13 @@ type Liked struct {
 }
 
 // SelfLiked は、唯一のおさいふ係がじぶんでいいねしたこと（ConsultationSelfLiked）。
+// じぶんでいいねは誰にも止められないので、いいねが 2 つ必要になる理由と、
+// そのときのやりくりの残りを、家族に見える記録として残す。
 type SelfLiked struct {
 	meta
-	deadlines Deadlines
+	deadlines       Deadlines
+	requirement     like.LikeFromSelf
+	remainingBudget money.Money
 }
 
 // Passed は、おさいふ係が見送ったこと（ConsultationPassed）。
@@ -155,6 +159,12 @@ func (e Liked) Deadlines() Deadlines { return e.deadlines }
 
 // Deadlines は、買える期限と報告の期限を返す。
 func (e SelfLiked) Deadlines() Deadlines { return e.deadlines }
+
+// Requirement は、じぶんでいいねで認められたことと、いいねが 2 つ必要になる理由を返す。
+func (e SelfLiked) Requirement() like.LikeFromSelf { return e.requirement }
+
+// RemainingBudget は、じぶんでいいねしたときのやりくりの残りを返す。
+func (e SelfLiked) RemainingBudget() money.Money { return e.remainingBudget }
 
 // Pass は、見送りの理由とコメントを返す。
 func (e Passed) Pass() like.ConsultationPass { return e.pass }
