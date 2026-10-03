@@ -34,6 +34,13 @@ linters:
           msg: 現在時刻は引数で受け取る（docs/rules/backend.md §2）
         - pattern: ^os\.(Getenv|LookupEnv)$
           msg: 設定は起動時に 1 か所で読み込む（docs/rules/backend.md §2）
+  exclusions:
+    rules:
+      # テストでは、再現できるように種を固定した乱数を使うため、gosec の G404 を除外する
+      - path: _test\.go
+        linters:
+          - gosec
+        text: G404
 
 formatters:
   enable:
