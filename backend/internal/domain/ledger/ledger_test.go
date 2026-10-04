@@ -8,6 +8,7 @@ import (
 	"github.com/kajiya-i/muda/backend/internal/domain/household"
 	"github.com/kajiya-i/muda/backend/internal/domain/ledger"
 	"github.com/kajiya-i/muda/backend/internal/domain/money"
+	"github.com/kajiya-i/muda/backend/internal/domain/purpose"
 )
 
 func yen(t *testing.T, minor int64) money.PositiveMoney {
@@ -32,19 +33,24 @@ func TestNewTransfer(t *testing.T) {
 	wallet := ledger.WalletAccount(money.JPY)
 	expense := ledger.ExpenseAccount(money.JPY)
 	usdExpense := ledger.ExpenseAccount(money.USD)
+	contribution := ledger.ContributionAccount(money.JPY)
 
 	tests := []struct {
 		name     string
 		from, to ledger.Account
+		purpose  purpose.Ref
 		wantErr  error
 	}{
-		{name: "valid", from: wallet, to: expense},
+		{name: "expense with purpose", from: wallet, to: expense, purpose: purpose.BuiltinFood},
+		{name: "top up without purpose", from: contribution, to: wallet},
 		{name: "same account", from: wallet, to: wallet, wantErr: ledger.ErrSameAccount},
-		{name: "currency mismatch", from: wallet, to: usdExpense, wantErr: money.ErrCurrencyMismatch},
+		{name: "currency mismatch", from: wallet, to: usdExpense, purpose: purpose.BuiltinFood, wantErr: money.ErrCurrencyMismatch},
+		{name: "expense without purpose", from: wallet, to: expense, wantErr: ledger.ErrPurposeMismatch},
+		{name: "top up with purpose", from: contribution, to: wallet, purpose: purpose.BuiltinFood, wantErr: ledger.ErrPurposeMismatch},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := ledger.NewTransfer(tt.from, tt.to, yen(t, 1000))
+			_, err := ledger.NewTransfer(tt.from, tt.to, yen(t, 1000), tt.purpose)
 			if !errors.Is(err, tt.wantErr) {
 				t.Errorf("NewTransfer error = %v, want %v", err, tt.wantErr)
 			}
@@ -57,8 +63,8 @@ func TestBalances(t *testing.T) {
 	child := member(t, "child")
 	transfers := []ledger.Transfer{
 		ledger.TopUp(yen(t, 150000)),
-		ledger.WalletPayment(yen(t, 28000)),
-		ledger.Advance(child, yen(t, 3480)),
+		ledger.WalletPayment(yen(t, 28000), purpose.BuiltinFood),
+		ledger.Advance(child, yen(t, 3480), purpose.BuiltinClothing),
 		ledger.Repayment(child, yen(t, 3480)),
 		ledger.TakeOut(yen(t, 20000)),
 	}
@@ -90,7 +96,7 @@ func TestBalances(t *testing.T) {
 // たてかえだけでおかえしが済んでいないとき、おかえし待ちの残高はマイナスになる。
 func TestBalancesOutstandingIsNegativeBeforeRepayment(t *testing.T) {
 	child := member(t, "child")
-	got, err := ledger.BalanceOf([]ledger.Transfer{ledger.Advance(child, yen(t, 3480))},
+	got, err := ledger.BalanceOf([]ledger.Transfer{ledger.Advance(child, yen(t, 3480), purpose.BuiltinClothing)},
 		ledger.OutstandingAccount(child, money.JPY))
 	if err != nil {
 		t.Fatal(err)
@@ -120,8 +126,8 @@ func TestBalancesSumToZeroPerCurrency(t *testing.T) {
 			ops := []func() ledger.Transfer{
 				func() ledger.Transfer { return ledger.TopUp(amount) },
 				func() ledger.Transfer { return ledger.TakeOut(amount) },
-				func() ledger.Transfer { return ledger.WalletPayment(amount) },
-				func() ledger.Transfer { return ledger.Advance(m, amount) },
+				func() ledger.Transfer { return ledger.WalletPayment(amount, purpose.BuiltinFood) },
+				func() ledger.Transfer { return ledger.Advance(m, amount, purpose.BuiltinFood) },
 				func() ledger.Transfer { return ledger.Repayment(m, amount) },
 			}
 			transfers = append(transfers, ops[r.IntN(len(ops))]())
@@ -147,5 +153,14 @@ func TestBalancesSumToZeroPerCurrency(t *testing.T) {
 				t.Fatalf("case %d: sum of %s balances = %d, want 0", i, c, sum.Minor())
 			}
 		}
+	}
+}
+
+func TestTransferPurpose(t *testing.T) {
+	if p, ok := ledger.WalletPayment(yen(t, 1000), purpose.BuiltinFood).Purpose(); !ok || p != purpose.BuiltinFood {
+		t.Errorf("WalletPayment purpose = %v (%v), want food", p, ok)
+	}
+	if _, ok := ledger.TopUp(yen(t, 1000)).Purpose(); ok {
+		t.Error("TopUp has a purpose, want none")
 	}
 }
