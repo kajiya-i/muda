@@ -15,6 +15,8 @@ import (
 var (
 	// ErrEmptyItem は、ほしいものが空のときのエラー。
 	ErrEmptyItem = errors.New("item is empty")
+	// ErrNoPurpose は、つかいみちが選ばれていないときのエラー。
+	ErrNoPurpose = errors.New("purpose is not selected")
 	// ErrNotAwaitingLikes は、いいね待ちではない相談にいいねや見送りをしようとしたときのエラー。
 	ErrNotAwaitingLikes = errors.New("consultation is not awaiting likes")
 	// ErrNotLiker は、いいねのルートに含まれない家族がいいねや見送りをしようとしたときのエラー。
@@ -43,6 +45,9 @@ func Submit(requester household.MemberID, in SubmitInput, h household.Household,
 ) (Submitted, error) {
 	if in.Item == "" {
 		return Submitted{}, fmt.Errorf("submit: %w", ErrEmptyItem)
+	}
+	if in.Purpose == nil {
+		return Submitted{}, fmt.Errorf("submit: %w", ErrNoPurpose)
 	}
 	route, err := like.DecideRoute(h, requester)
 	if err != nil {

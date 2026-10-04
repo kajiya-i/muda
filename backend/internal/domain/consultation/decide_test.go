@@ -66,19 +66,25 @@ func yen(t *testing.T, minor int64) money.PositiveMoney {
 	return p
 }
 
-// submit は、相談を出して始めた相談を返す。
+// submit は、相談を出して始めた相談を返す。相談 ID は c1 にする。
 func (w world) submit(t *testing.T, h household.Household, requester household.MemberID, amount int64) consultation.Consultation {
+	t.Helper()
+	return w.submitWithID(t, "c1", h, requester, amount)
+}
+
+// submitWithID は、指定した相談 ID で、相談を出して始めた相談を返す。
+func (w world) submitWithID(t *testing.T, id string, h household.Household, requester household.MemberID, amount int64) consultation.Consultation {
 	t.Helper()
 	in := consultation.SubmitInput{Item: "スニーカー", Amount: yen(t, amount), Purpose: purpose.BuiltinClothing}
 	e, err := consultation.Submit(requester, in, h, w.thrillLine, w.now)
 	if err != nil {
 		t.Fatal(err)
 	}
-	id, err := consultation.NewID("c1")
+	cid, err := consultation.NewID(id)
 	if err != nil {
 		t.Fatal(err)
 	}
-	return consultation.Start(id, e)
+	return consultation.Start(cid, e)
 }
 
 // like は、いいねを決めて、そのイベントを適用した相談と、決まったイベントを返す。
@@ -142,9 +148,10 @@ func TestSubmitErrors(t *testing.T) {
 		line    money.NonNegativeMoney
 		wantErr error
 	}{
-		{name: "empty item", in: consultation.SubmitInput{Amount: yen(t, 1000)}, h: w.twoKeepers, line: w.thrillLine, wantErr: consultation.ErrEmptyItem},
-		{name: "currency mismatch", in: consultation.SubmitInput{Item: "本", Amount: yen(t, 1000)}, h: w.twoKeepers, line: usdLine, wantErr: money.ErrCurrencyMismatch},
-		{name: "requester has left", in: consultation.SubmitInput{Item: "本", Amount: yen(t, 1000)}, h: left, line: w.thrillLine, wantErr: household.ErrMemberLeft},
+		{name: "empty item", in: consultation.SubmitInput{Amount: yen(t, 1000), Purpose: purpose.BuiltinOther}, h: w.twoKeepers, line: w.thrillLine, wantErr: consultation.ErrEmptyItem},
+		{name: "no purpose", in: consultation.SubmitInput{Item: "本", Amount: yen(t, 1000)}, h: w.twoKeepers, line: w.thrillLine, wantErr: consultation.ErrNoPurpose},
+		{name: "currency mismatch", in: consultation.SubmitInput{Item: "本", Amount: yen(t, 1000), Purpose: purpose.BuiltinEducation}, h: w.twoKeepers, line: usdLine, wantErr: money.ErrCurrencyMismatch},
+		{name: "requester has left", in: consultation.SubmitInput{Item: "本", Amount: yen(t, 1000), Purpose: purpose.BuiltinEducation}, h: left, line: w.thrillLine, wantErr: household.ErrMemberLeft},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
