@@ -80,16 +80,18 @@ type WithdrawnState struct {
 	reason  WithdrawalReason
 }
 
-// PurchasedState は、買ったよ。
+// PurchasedState は、買ったよ。いいねがそろった月のやりくりに数えるため、期限を引き継ぐ。
 type PurchasedState struct {
-	details Details
-	amount  money.PositiveMoney
-	method  PaymentMethod
+	details   Details
+	deadlines Deadlines
+	amount    money.PositiveMoney
+	method    PaymentMethod
 }
 
-// RepaidState は、おかえし済み。
+// RepaidState は、おかえし済み。いいねがそろった月のやりくりに数えるため、期限を引き継ぐ。
 type RepaidState struct {
 	details   Details
+	deadlines Deadlines
 	amount    money.PositiveMoney
 	repayment ledger.RepaymentID
 }
@@ -134,11 +136,17 @@ func (s PassedState) Pass() like.ConsultationPass { return s.pass }
 // Reason は、とりやめになったわけを返す。
 func (s WithdrawnState) Reason() WithdrawalReason { return s.reason }
 
+// Deadlines は、いいねがそろったときに決まった期限を返す。
+func (s PurchasedState) Deadlines() Deadlines { return s.deadlines }
+
 // Amount は、買った金額を返す。
 func (s PurchasedState) Amount() money.PositiveMoney { return s.amount }
 
 // Method は、払い方を返す。
 func (s PurchasedState) Method() PaymentMethod { return s.method }
+
+// Deadlines は、いいねがそろったときに決まった期限を返す。
+func (s RepaidState) Deadlines() Deadlines { return s.deadlines }
 
 // Amount は、買った金額を返す。
 func (s RepaidState) Amount() money.PositiveMoney { return s.amount }
