@@ -1,13 +1,19 @@
 package consultation
 
-import "time"
+import (
+	"time"
+
+	"github.com/kajiya-i/muda/backend/internal/domain/budget"
+)
 
 // reportGraceDays は、いいねがそろった月の翌月の何日の終わりまで、買ったよ報告ができるか。
 const reportGraceDays = 7
 
 // Deadlines は、いいね済みの相談の 2 つの期限（docs/domain/consultation.md）。
 // どちらも「この瞬間以降は期限を過ぎている」という瞬間で表す。
+// いいねがそろった月も合わせて持ち、買った金額や使う予定のお金を、どの月のやりくりに数えるかに使う。
 type Deadlines struct {
+	month    budget.Month
 	purchase time.Time
 	report   time.Time
 }
@@ -25,10 +31,14 @@ func NewDeadlines(likedAt time.Time, loc *time.Location) Deadlines {
 	// time.Date は月の繰り上がりを正規化するので、12 月の翌月は翌年の 1 月になる。
 	nextMonth := time.Date(local.Year(), local.Month()+1, 1, 0, 0, 0, 0, loc)
 	return Deadlines{
+		month:    budget.MonthOf(likedAt, loc),
 		purchase: nextMonth,
 		report:   nextMonth.AddDate(0, 0, reportGraceDays),
 	}
 }
+
+// Month は、いいねがそろった月を返す。
+func (d Deadlines) Month() budget.Month { return d.month }
 
 // Purchase は、買える期限を返す。
 func (d Deadlines) Purchase() time.Time { return d.purchase }

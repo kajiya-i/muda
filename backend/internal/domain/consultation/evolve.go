@@ -126,13 +126,13 @@ func apply(s State, e Event) (State, error) {
 		if !ok {
 			return nil, ErrInvalidTransition
 		}
-		return PurchasedState{details: l.details, amount: e.amount, method: e.method}, nil
+		return PurchasedState{details: l.details, deadlines: l.deadlines, amount: e.amount, method: e.method}, nil
 	case AdvanceRepaid:
 		p, ok := s.(PurchasedState)
 		if !ok || p.method != PaidByAdvance {
 			return nil, ErrInvalidTransition
 		}
-		return RepaidState{details: p.details, amount: p.amount, repayment: e.repayment}, nil
+		return RepaidState{details: p.details, deadlines: p.deadlines, amount: p.amount, repayment: e.repayment}, nil
 	}
 	panic("consultation: unknown event")
 }
