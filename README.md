@@ -12,6 +12,17 @@
 
 - FP を導入しバグを少なく運用できるかを検証する
 
+## 開発環境
+
+データベース（PostgreSQL）は Docker Compose で起動する。
+
+```bash
+cp .env.example .env
+docker compose up -d
+```
+
+止めるときは `docker compose down`、データも消すときは `docker compose down -v` を実行する。
+
 ## ドキュメント
 
 - ドメインの仕様: [docs/domain](docs/domain)
