@@ -10,6 +10,7 @@
 - [いいね](like.md)
 - [今月のやりくり](budget.md)
 - [相談](consultation.md)
+- [おねがい](proposal.md)
 - [おうちのおさいふ](wallet.md)
 
 ## ユビキタス言語
