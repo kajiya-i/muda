@@ -23,6 +23,16 @@ docker compose up -d
 
 止めるときは `docker compose down`、データも消すときは `docker compose down -v` を実行する。
 
+データベースのマイグレーションは、`backend/` で goose を使って実行する。
+
+```bash
+cd backend
+go tool goose -env ../.env up       # 適用する
+go tool goose -env ../.env status   # 状態を確かめる
+go tool goose -env ../.env down     # 1 つ取り消す
+go tool goose -env ../.env -s create <名前> sql   # 新しいマイグレーションを作る
+```
+
 ## ドキュメント
 
 - ドメインの仕様: [docs/domain](docs/domain)
