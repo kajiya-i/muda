@@ -14,7 +14,17 @@
 
 ## 開発環境
 
-データベース（PostgreSQL）は Docker Compose で起動する。
+## 開発環境
+
+開発に必要なツール（Go、Bun、golangci-lint、PostgreSQL のクライアント）は、Nix の devShell でそろえる。[Nix](https://nixos.org/download/) をインストールし、flakes を有効にしたうえで、リポジトリのルートで次を実行する。
+
+```bash
+nix develop
+```
+
+[direnv](https://direnv.net/) を使う場合は、初回に `direnv allow` を実行すると、ディレクトリに移動するだけで devShell に入り、`.env` も読み込まれる。VSCode では direnv 拡張（`mkhl.direnv`）を入れると、エディタも devShell のツールを使う。
+
+データベース（PostgreSQL）のサーバーは Docker Compose で起動する。
 
 ```bash
 cp .env.example .env
