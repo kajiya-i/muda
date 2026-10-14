@@ -4,12 +4,16 @@ on:
   pull_request:
     paths:
       - "backend/**"
+      - "flake.nix"
+      - "flake.lock"
       - ".github/workflows/backend.yml"
   push:
     branches:
       - main
     paths:
       - "backend/**"
+      - "flake.nix"
+      - "flake.lock"
       - ".github/workflows/backend.yml"
 
 permissions:
@@ -24,33 +28,61 @@ defaults:
     working-directory: backend
 
 jobs:
-  lint:
+  check:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: muda
+          POSTGRES_PASSWORD: muda
+          POSTGRES_DB: muda
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U muda -d muda"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      GOOSE_DRIVER: postgres
+      GOOSE_DBSTRING: postgres://muda:muda@localhost:5432/muda?sslmode=disable
+      GOOSE_MIGRATION_DIR: db/migrations
+
     steps:
       - uses: actions/checkout@v6
 
-      - uses: actions/setup-go@v6
+      - uses: cachix/install-nix-action@v31
         with:
-          go-version-file: backend/go.mod
-          cache-dependency-path: backend/go.mod
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: golangci/golangci-lint-action@v9
+      - name: Cache Go modules and build cache
+        uses: actions/cache@v6
         with:
-          version: v2.14
-          working-directory: backend
-
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: actions/setup-go@v6
-        with:
-          go-version-file: backend/go.mod
-          cache-dependency-path: backend/go.mod
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+            ~/.cache/golangci-lint
+          key: go-${{ runner.os }}-${{ hashFiles('backend/go.sum', 'flake.lock') }}
+          restore-keys: |
+            go-${{ runner.os }}-
 
       - name: Build
-        run: go build ./...
+        run: nix develop .. --command go build ./...
 
       - name: Test
-        run: go test -race ./...
+        run: nix develop .. --command go test -race ./...
+
+      - name: Lint
+        run: nix develop .. --command golangci-lint run ./...
+
+      - name: Check generated code
+        run: nix develop .. --command go tool sqlc diff
+
+      - name: Migrate up, down and up again
+        run: |
+          nix develop .. --command go tool goose up
+          nix develop .. --command go tool goose reset
+          nix develop .. --command go tool goose up
