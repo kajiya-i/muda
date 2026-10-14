@@ -9,6 +9,9 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/kajiya-i/muda/backend/internal/handler"
+	"github.com/kajiya-i/muda/backend/internal/infrastructure/httpapi/apigen"
 )
 
 func main() {
@@ -23,13 +26,11 @@ func run() error {
 	defer stop()
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
+	h := apigen.HandlerFromMux(apigen.NewStrictHandler(handler.New(), nil), mux)
 
 	srv := &http.Server{
 		Addr:              ":8080",
-		Handler:           mux,
+		Handler:           h,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
