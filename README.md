@@ -14,8 +14,6 @@
 
 ## 開発環境
 
-## 開発環境
-
 開発に必要なツール（Go、Bun、golangci-lint、PostgreSQL のクライアント）は、Nix の devShell でそろえる。[Nix](https://nixos.org/download/) をインストールし、flakes を有効にしたうえで、リポジトリのルートで次を実行する。
 
 ```bash
