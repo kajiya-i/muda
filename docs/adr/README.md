@@ -48,3 +48,4 @@
 | [0006](0006-persistence-stack.md) | PostgreSQL、pgx、sqlc、goose で永続化する | Accepted | 2026-10-03 |
 | [0007](0007-persistence-format.md) | 台帳を移動の行で、相談とおねがいをようすとイベントで保存する | Accepted | 2026-10-03 |
 | [0008](0008-nix-dev-shell.md) | 開発ツールを Nix の devShell で揃える | Accepted | 2026-10-14 |
+| [0009](0009-api-contract.md) | API 契約を OpenAPI で書き、Go と TypeScript のコードを生成する | Accepted | 2026-10-14 |
