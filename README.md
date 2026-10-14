@@ -33,6 +33,14 @@ go tool goose -env ../.env down     # 1 つ取り消す
 go tool goose -env ../.env -s create <名前> sql   # 新しいマイグレーションを作る
 ```
 
+データベースにアクセスする Go のコードは、`backend/db/queries/` の SQL から sqlc で生成する。生成したコードは手で編集せず、コミットする。
+
+```bash
+cd backend
+go tool sqlc generate   # コードを生成する
+go tool sqlc diff       # 生成済みのコードと差分がないかを確かめる
+```
+
 ## ドキュメント
 
 - ドメインの仕様: [docs/domain](docs/domain)
