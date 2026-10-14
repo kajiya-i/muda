@@ -3,6 +3,7 @@ name: Backend
 on:
   pull_request:
     paths:
+      - "api/**"
       - "backend/**"
       - "flake.nix"
       - "flake.lock"
@@ -11,6 +12,7 @@ on:
     branches:
       - main
     paths:
+      - "api/**"
       - "backend/**"
       - "flake.nix"
       - "flake.lock"
@@ -79,7 +81,10 @@ jobs:
         run: nix develop .. --command golangci-lint run ./...
 
       - name: Check generated code
-        run: nix develop .. --command go tool sqlc diff
+        run: |
+          nix develop .. --command go tool sqlc diff
+          nix develop .. --command go tool oapi-codegen -config oapi-codegen.yml ../api/openapi.yml
+          git diff --exit-code
 
       - name: Migrate up, down and up again
         run: |

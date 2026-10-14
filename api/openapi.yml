@@ -1,0 +1,38 @@
+openapi: 3.1.0
+info:
+  title: Muda API
+  version: 0.1.0
+  description: Muda のバックエンドの API（ADR-0009）。
+
+paths:
+  /healthz:
+    get:
+      operationId: getHealth
+      summary: バックエンドが動いているかを確かめる
+      tags: [health]
+      responses:
+        "200":
+          description: バックエンドが動いている
+
+components:
+  schemas:
+    Problem:
+      type: object
+      description: 想定されたエラー。RFC 9457 の Problem Details に、エラーのコードを加えたもの。
+      required: [type, title, status, code]
+      properties:
+        type:
+          type: string
+          description: エラーの種類を表す URI
+        title:
+          type: string
+          description: エラーの種類の短い説明（開発者向け）
+        status:
+          type: integer
+          description: HTTP のステータスコード
+        detail:
+          type: string
+          description: このエラーについての説明（開発者向け）
+        code:
+          type: string
+          description: エラーのコード。フロントエンドはこの値でタグ付きのエラーに変換する
