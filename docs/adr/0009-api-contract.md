@@ -86,7 +86,7 @@ Medium
 
 ## Compliance
 
-- `api/openapi.yaml` を変更する PR では、Go と TypeScript の生成したコードも同じ PR で更新する。
+- `api/openapi.yml` を変更する PR では、Go と TypeScript の生成したコードも同じ PR で更新する。
 - CI で、Go と TypeScript のコードを生成し直し、差分がないことを確かめる。
 - ドメイン層が、生成された Go のパッケージを import していないことを、`depguard` で確かめる。
 - 最初の API を実装した時点で、この ADR の Confidence を見直す。

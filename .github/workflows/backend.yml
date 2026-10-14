@@ -83,7 +83,7 @@ jobs:
       - name: Check generated code
         run: |
           nix develop .. --command go tool sqlc diff
-          nix develop .. --command go tool oapi-codegen -config oapi-codegen.yaml ../api/openapi.yaml
+          nix develop .. --command go tool oapi-codegen -config oapi-codegen.yml ../api/openapi.yml
           git diff --exit-code
 
       - name: Migrate up, down and up again

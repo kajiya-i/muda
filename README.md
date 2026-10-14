@@ -49,11 +49,11 @@ go tool sqlc generate   # コードを生成する
 go tool sqlc diff       # 生成済みのコードと差分がないかを確かめる
 ```
 
-API 契約は `api/openapi.yaml` に書き、Go と TypeScript のコードを生成する（ADR-0009）。生成したコードは手で編集せず、コミットする。
+API 契約は `api/openapi.yml` に書き、Go と TypeScript のコードを生成する（ADR-0009）。生成したコードは手で編集せず、コミットする。
 
 ```bash
 cd backend
-go tool oapi-codegen -config oapi-codegen.yaml ../api/openapi.yaml
+go tool oapi-codegen -config oapi-codegen.yml ../api/openapi.yml
 ```
 
 ## ドキュメント
